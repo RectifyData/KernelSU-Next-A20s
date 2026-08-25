@@ -1286,7 +1286,7 @@ static int check_version(Elf_Shdr *sechdrs,
 
 	/* No versions at all?  modprobe --force does this. */
 	if (versindex == 0)
-		return try_to_force_load(mod, symname) == 0;
+		return 1;
 
 	versions = (void *) sechdrs[versindex].sh_addr;
 	num_versions = sechdrs[versindex].sh_size
@@ -1308,9 +1308,10 @@ static int check_version(Elf_Shdr *sechdrs,
 	return 1;
 
 bad_version:
-	pr_warn("%s: disagrees about version of symbol %s\n",
+	pr_warn("%s: disagrees about version of symbol %s, allowing load\n",
 	       mod->name, symname);
-	return 0;
+	add_taint_module(mod, TAINT_FORCED_MODULE, LOCKDEP_STILL_OK);
+	return 1;
 }
 
 static inline int check_modstruct_version(Elf_Shdr *sechdrs,
