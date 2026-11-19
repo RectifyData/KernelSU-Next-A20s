@@ -1,7 +1,7 @@
 # KernelSU-Next for Samsung Galaxy A20s (SM-A207F / msm8953)
 
 [![Kernel Version](https://img.shields.io/badge/Kernel-4.9.227--perf%2B-blue.svg)](https://github.com/)
-[![KernelSU-Next](https://img.shields.io/badge/KernelSU--Next-v3.2.0--legacy-success.svg)](https://github.com/KernelSU-Next/KernelSU-Next)
+[![KernelSU-Next](https://img.shields.io/badge/KernelSU--Next-v3.4.0--legacy-success.svg)](https://github.com/KernelSU-Next/KernelSU-Next)
 [![SELinux](https://img.shields.io/badge/SELinux-Enforcing-brightgreen.svg)]()
 [![Target OS](https://img.shields.io/badge/Android-11%20(One%20UI)-orange.svg)]()
 [![Device](https://img.shields.io/badge/Device-Samsung%20Galaxy%20A20s-purple.svg)]()
@@ -22,7 +22,7 @@ Custom kernel for the **Samsung Galaxy A20s** (`SM-A207F` / `msm8953` / `sdm450`
 
 ## ✨ Features
 
-- **KernelSU-Next Legacy Integrated**: Built directly into the kernel source (`v3.2.0-legacy`) running in **Manual Hook Mode** for Linux 4.9.
+- **KernelSU-Next Legacy Integrated**: Built directly into the kernel source (`v3.4.0-legacy`) running in **Manual Hook Mode** for Linux 4.9.
 - **SELinux Enforcing Supported**: Full root privilege separation under `u:r:ksu:s0` without requiring permissive mode.
 - **OverlayFS Enabled (`CONFIG_OVERLAY_FS=y`)**: Full support for systemless root modules (ZygiskNext, ZygiskKSU, etc.).
 - **Connectivity & Battery Drain Fix**: `CONFIG_CNSS_GENL=y` enabled to fix the Qualcomm `cnss-daemon` ~61% CPU spinning loop.
@@ -84,8 +84,8 @@ Custom kernel for the **Samsung Galaxy A20s** (`SM-A207F` / `msm8953` / `sdm450`
 git clone <your-kernel-repo-url> -b main kernel_a20s
 cd kernel_a20s
 
-# 2. Setup KernelSU-Next legacy driver
-curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
+# 2. Setup KernelSU-Next legacy driver (pinned to the v3.4.0-legacy tag)
+curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/v3.4.0-legacy/kernel/setup.sh" | bash -s v3.4.0-legacy
 
 # 3. Export toolchain variables
 export ARCH=arm64
