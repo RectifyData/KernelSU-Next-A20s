@@ -17,11 +17,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make bc bison flex cpio zip python3 libssl-dev git
 
-      - name: Fetch GCC 4.9 toolchains
+      - name: Fetch GCC 4.9 toolchains (pie-release)
         run: |
           mkdir -p $HOME/toolchains
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 $HOME/toolchains/aarch64
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 $HOME/toolchains/arm
+          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 $HOME/toolchains/aarch64
+          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 $HOME/toolchains/arm
 
       - name: Setup KernelSU-Next legacy (v3.4.0-legacy)
         run: |
@@ -35,18 +35,9 @@ jobs:
           make O=out a20s_eur_open_defconfig
           make -j$(nproc) O=out
 
-      - name: Package AnyKernel3 zip
-        run: |
-          git clone --depth 1 https://github.com/osm0sis/AnyKernel3 AnyKernel3
-          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cd AnyKernel3
-          zip -r9 ../KSU-Next-Kernel-A20s.zip ./*
-          cd ..
-          mv KSU-Next-Kernel-A20s.zip out/
-
-      - name: Upload kernel zip
+      - name: Upload kernel image
         uses: actions/upload-artifact@v4
         with:
-          name: KSU-Next-Kernel-A20s
-          path: out/KSU-Next-Kernel-A20s.zip
+          name: A20s-Image-Gz-Dtb
+          path: out/arch/arm64/boot/Image.gz-dtb
           if-no-files-found: error
