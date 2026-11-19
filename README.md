@@ -101,6 +101,20 @@ make -j$(nproc) O=out
 
 ---
 
+## 🧩 SUSFS Root Hiding (BRENE Module)
+
+Root hiding on KernelSU-Next depends on **SUSFS**, which has two parts:
+
+- **Kernel side**: SUSFS patches applied to this kernel source. The kernel must have SUSFS built in, or the module has nothing to talk to.
+- **Userspace side**: [**BRENE**](https://github.com/rrr333nnn333/BRENE) (`.BRENE - SUSFS`), a KernelSU module that installs the `ksu_susfs` helper into `/data/adb/ksu/bin/` and manages hiding settings.
+
+BRENE is flashed separately through the KernelSU-Next Manager's Modules tab. It is not part of the kernel build and is not vendored in this repository.
+
+- BRENE supports `susfs4ksu` **2.2.0, 2.3.0 and 2.3.0+**. The SUSFS version in the kernel must match one of these.
+- Install BRENE only after flashing the kernel, and reboot once after installing it.
+
+---
+
 ## ❓ Troubleshooting & FAQ
 
 * **Q: The phone is stuck at the Samsung boot logo.**  
@@ -112,6 +126,9 @@ make -j$(nproc) O=out
 * **Q: Root is not working in ADB Shell.**  
   **A:** In the KernelSU-Next Manager, go to the Superuser tab and grant root permission to `Shell` (UID 2000) or your target app.
 
+* **Q: BRENE says SUSFS is not available.**  
+  **A:** The kernel was built without SUSFS, or its SUSFS version is outside the 2.2.0 / 2.3.0 / 2.3.0+ range BRENE supports.
+
 ---
 
 ## 📜 Credits & Acknowledgements
@@ -119,5 +136,7 @@ make -j$(nproc) O=out
 - [yiesko/android_kernel_samsung_a20s](https://github.com/yiesko/android_kernel_samsung_a20s) for the Samsung Galaxy A20s kernel source tree and patches.
 - [KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next) by **rifsxd** and contributors.
 - [KernelSU](https://github.com/tiann/KernelSU) by **tiann**.
+- [SUSFS (susfs4ksu)](https://gitlab.com/simonpunk/susfs4ksu) by **simonpunk**.
+- [BRENE](https://github.com/rrr333nnn333/BRENE) by **rrr333nnn333**, with contributions from **KOWX712**.
 - [AnyKernel3](https://github.com/osm0sis/AnyKernel3) by **osm0sis**.
 - **Samsung Open Source Release Center (OSRC)** for the base kernel source.
