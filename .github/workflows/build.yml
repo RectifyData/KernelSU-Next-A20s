@@ -28,9 +28,9 @@ jobs:
 
       - name: Fetch GCC 4.9 toolchains (pie-release)
         run: |
-          mkdir -p $HOME/toolchains
-          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 $HOME/toolchains/aarch64
-          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 $HOME/toolchains/arm
+          mkdir -p "$HOME/toolchains"
+          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 "$HOME/toolchains/aarch64"
+          git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 "$HOME/toolchains/arm"
 
       - name: Prepare SUSFS v2.3.0
         run: |
@@ -45,46 +45,25 @@ jobs:
         run: |
           python3 scripts/patch_kernelsu_susfs_v2.py
           test "$(git -C KernelSU-Next rev-parse HEAD)" = "8af3d4fec33be32fa5d3f8dae4f380fac45bf2cd"
-          grep -q '#define SUSFS_VERSION "v2.3.0"' include/linux/susfs.h
+          grep -Fq '#define SUSFS_VERSION "v2.3.0"' include/linux/susfs.h
 
       - name: Configure and smoke-compile KernelSU/SUSFS
         run: |
           export ARCH=arm64
-          export CROSS_COMPILE=$HOME/toolchains/aarch64/bin/aarch64-linux-android-
-          export CROSS_COMPILE_ARM32=$HOME/toolchains/arm/bin/arm-linux-androideabi-
+          export CROSS_COMPILE="$HOME/toolchains/aarch64/bin/aarch64-linux-android-"
+          export CROSS_COMPILE_ARM32="$HOME/toolchains/arm/bin/arm-linux-androideabi-"
           make O=out a20s_eur_open_defconfig
-          grep -q '^CONFIG_KSU=y
-      - name: Upload kernel image
-        uses: actions/upload-artifact@v4
-        with:
-          name: A20s-Image-Gz-Dtb
-          path: out/arch/arm64/boot/Image.gz-dtb
-          if-no-files-found: error
- out/.config
-          grep -q '^CONFIG_KSU_SUSFS=y
-      - name: Upload kernel image
-        uses: actions/upload-artifact@v4
-        with:
-          name: A20s-Image-Gz-Dtb
-          path: out/arch/arm64/boot/Image.gz-dtb
-          if-no-files-found: error
- out/.config
-          grep -q '^CONFIG_KSU_SUSFS_SUS_MAP=y
-      - name: Upload kernel image
-        uses: actions/upload-artifact@v4
-        with:
-          name: A20s-Image-Gz-Dtb
-          path: out/arch/arm64/boot/Image.gz-dtb
-          if-no-files-found: error
- out/.config
-          make -j$(nproc) O=out drivers/kernelsu/ fs/susfs.o fs/notify/fdinfo.o security/selinux/avc.o
+          grep -Fqx 'CONFIG_KSU=y' out/.config
+          grep -Fqx 'CONFIG_KSU_SUSFS=y' out/.config
+          grep -Fqx 'CONFIG_KSU_SUSFS_SUS_MAP=y' out/.config
+          make -j"$(nproc)" O=out drivers/kernelsu/ fs/susfs.o fs/notify/fdinfo.o security/selinux/avc.o
 
       - name: Build kernel
         run: |
           export ARCH=arm64
-          export CROSS_COMPILE=$HOME/toolchains/aarch64/bin/aarch64-linux-android-
-          export CROSS_COMPILE_ARM32=$HOME/toolchains/arm/bin/arm-linux-androideabi-
-          make -j$(nproc) O=out
+          export CROSS_COMPILE="$HOME/toolchains/aarch64/bin/aarch64-linux-android-"
+          export CROSS_COMPILE_ARM32="$HOME/toolchains/arm/bin/arm-linux-androideabi-"
+          make -j"$(nproc)" O=out
 
       - name: Upload kernel image
         uses: actions/upload-artifact@v4
