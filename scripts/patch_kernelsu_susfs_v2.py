@@ -44,7 +44,7 @@ def patch_legacy_header_compat() -> None:
         return
 
     pattern = re.compile(
-        r'#include\\s*[<"]linux/sched/('
+        r'#include\s*[<"]linux/sched/('
         + "|".join(re.escape(name) for name in sorted(missing))
         + r')[>"]'
     )
