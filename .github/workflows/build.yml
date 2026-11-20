@@ -2,6 +2,9 @@ name: Build A20s Kernel
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - update/ksu-3.4.0-legacy-susfs-v2.3.0
 
 jobs:
   build:
@@ -22,6 +25,11 @@ jobs:
           mkdir -p $HOME/toolchains
           git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 $HOME/toolchains/aarch64
           git clone --depth 1 --branch pie-release https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 $HOME/toolchains/arm
+
+      - name: Prepare SUSFS v2.3.0
+        run: |
+          chmod +x scripts/prepare_susfs_v2.sh
+          scripts/prepare_susfs_v2.sh
 
       - name: Setup KernelSU-Next legacy (v3.4.0-legacy)
         run: |
