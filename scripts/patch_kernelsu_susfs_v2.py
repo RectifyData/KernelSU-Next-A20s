@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -27,29 +28,42 @@ def insert_after(path: str, anchor: str, addition: str) -> None:
     replace_once(path, anchor, anchor + addition)
 
 def patch_legacy_header_compat() -> None:
-    """Map split scheduler headers back to linux/sched.h on this Samsung 4.9 tree."""
-    split_headers = (
-        "linux/sched/signal.h",
-        "linux/sched/user.h",
-        "linux/sched/task.h",
-        "linux/sched/mm.h",
-        "linux/sched/coredump.h",
+    """Map post-4.9 split scheduler headers back to linux/sched.h."""
+    missing = {
+        name
+        for name in (
+            "signal.h",
+            "user.h",
+            "task.h",
+            "mm.h",
+            "coredump.h",
+        )
+        if not (ROOT / "include" / "linux" / "sched" / name).exists()
+    }
+    if not missing:
+        return
+
+    pattern = re.compile(
+        r'#include\\s*[<"]linux/sched/('
+        + "|".join(re.escape(name) for name in sorted(missing))
+        + r')[>"]'
     )
-    for header in split_headers:
-        if (ROOT / "include" / header).exists():
+    for path in KSU.rglob("*"):
+        if not path.is_file() or path.suffix not in {".c", ".h"}:
             continue
-        needle_angle = f"#include <{header}>\\n"
-        needle_quote = f'#include "{header}"\\n'
-        for path in KSU.rglob("*"):
-            if not path.is_file() or path.suffix not in {".c", ".h"}:
-                continue
-            text = path.read_text()
-            new = text.replace(needle_angle, "").replace(needle_quote, "")
-            if new == text:
-                continue
-            if "#include <linux/sched.h>" not in new and '#include "linux/sched.h"' not in new:
-                new = "#include <linux/sched.h>\\n" + new
+        text = path.read_text()
+        new = pattern.sub("#include <linux/sched.h>", text)
+        if new != text:
             path.write_text(new)
+
+    leftovers = []
+    for path in KSU.rglob("*"):
+        if not path.is_file() or path.suffix not in {".c", ".h"}:
+            continue
+        for match in pattern.finditer(path.read_text()):
+            leftovers.append(f"{path.relative_to(KSU)}: {match.group(0)}")
+    if leftovers:
+        raise RuntimeError("unsupported scheduler headers remain: " + "; ".join(leftovers))
 
 def patch_kconfig() -> None:
     path = "Kconfig"
