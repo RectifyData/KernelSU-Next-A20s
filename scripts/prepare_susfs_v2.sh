@@ -47,11 +47,7 @@ cp "$tmp/kernel_patches/fs/susfs.c" fs/susfs.c
 cp "$tmp/kernel_patches/include/linux/susfs.h" include/linux/susfs.h
 cp "$tmp/kernel_patches/include/linux/susfs_def.h" include/linux/susfs_def.h
 
-if ! git apply --reject --whitespace=nowarn "$tmp/kernel_patches/50_add_susfs_in_kernel-4.9.patch"; then
-  echo "::error::SUSFS v2.3.0 kernel patch needs A20s-specific conflict resolution."
-  find . -name '*.rej' -print -exec sh -c 'echo "----- $1"; cat "$1"' _ {} \;
-  exit 1
-fi
+python3 scripts/apply_susfs_v2.py "$tmp/kernel_patches/50_add_susfs_in_kernel-4.9.patch"
 
 cfg="arch/arm64/configs/a20s_eur_open_defconfig"
 # Remove v1-only switches and ensure the v2 feature set is enabled.
