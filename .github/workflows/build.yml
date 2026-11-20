@@ -37,6 +37,12 @@ jobs:
         run: |
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/v3.4.0-legacy/kernel/setup.sh" | bash -s v3.4.0-legacy
 
+      - name: Integrate SUSFS v2 with KernelSU-Next
+        run: |
+          python3 scripts/patch_kernelsu_susfs_v2.py
+          test "$(git -C KernelSU-Next rev-parse HEAD)" = "8af3d4fec33be32fa5d3f8dae4f380fac45bf2cd"
+          grep -q '#define SUSFS_VERSION "v2.3.0"' include/linux/susfs.h
+
       - name: Build kernel
         run: |
           export ARCH=arm64
