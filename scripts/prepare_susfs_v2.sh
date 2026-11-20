@@ -56,6 +56,7 @@ sed -i \
   -e '/CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=/d' \
   -e '/CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=/d' \
   -e '/CONFIG_KSU_SUSFS_SUS_OVERLAYFS=/d' \
+  -e '/CONFIG_KSU_SUSFS_TRY_UMOUNT=/d' \
   "$cfg"
 
 grep -q '^CONFIG_KSU_SUSFS_SUS_MAP=y$' "$cfg" || echo 'CONFIG_KSU_SUSFS_SUS_MAP=y' >> "$cfg"
