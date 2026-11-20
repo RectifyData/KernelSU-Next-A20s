@@ -31,6 +31,9 @@ KEEP_HUNKS = {
     # Samsung SELinux adds a vendor block after classmap.h; insert declarations
     # below and keep the AVC spoofing logic hunk.
     "security/selinux/avc.c": {158},
+    # Keep only uname spoofing here. setresuid uses the native 2-argument
+    # KernelSU-Next v3.4.0-legacy manual-hook ABI, wired below.
+    "kernel/sys.c": {1143},
 }
 
 def split_sections(text: str) -> list[tuple[str, str]]:
@@ -125,6 +128,23 @@ def manual_vendor_adaptations() -> None:
         'extern u32 susfs_priv_app_sid;\n'
         'extern struct static_key_false susfs_is_avc_log_spoofing_enabled;\n'
         '#endif\n',
+    )
+
+    sysc = ROOT / "kernel/sys.c"
+    insert_after(
+        sysc,
+        ' * and suid.  This allows you to implement the 4.4 compatible seteuid().\n */\n',
+        '#ifdef CONFIG_KSU\n'
+        'extern int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid);\n'
+        '#endif\n',
+    )
+    replace_once(
+        sysc,
+        '\tint retval;\n\tkuid_t kruid, keuid, ksuid;\n\n',
+        '\tint retval;\n\tkuid_t kruid, keuid, ksuid;\n\n'
+        '#ifdef CONFIG_KSU\n'
+        '\t(void)ksu_handle_setresuid(current_uid().val, ruid);\n'
+        '#endif\n\n',
     )
 
     fdinfo = ROOT / "fs/notify/fdinfo.c"
