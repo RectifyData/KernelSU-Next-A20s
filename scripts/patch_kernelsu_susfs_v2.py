@@ -26,6 +26,31 @@ def replace_once(path: str, old: str, new: str) -> None:
 def insert_after(path: str, anchor: str, addition: str) -> None:
     replace_once(path, anchor, anchor + addition)
 
+def patch_legacy_header_compat() -> None:
+    """Map split scheduler headers back to linux/sched.h on this Samsung 4.9 tree."""
+    split_headers = (
+        "linux/sched/signal.h",
+        "linux/sched/user.h",
+        "linux/sched/task.h",
+        "linux/sched/mm.h",
+        "linux/sched/coredump.h",
+    )
+    for header in split_headers:
+        if (ROOT / "include" / header).exists():
+            continue
+        needle_angle = f"#include <{header}>\\n"
+        needle_quote = f'#include "{header}"\\n'
+        for path in KSU.rglob("*"):
+            if not path.is_file() or path.suffix not in {".c", ".h"}:
+                continue
+            text = path.read_text()
+            new = text.replace(needle_angle, "").replace(needle_quote, "")
+            if new == text:
+                continue
+            if "#include <linux/sched.h>" not in new and '#include "linux/sched.h"' not in new:
+                new = "#include <linux/sched.h>\\n" + new
+            path.write_text(new)
+
 def patch_kconfig() -> None:
     path = "Kconfig"
     text = read(path)
@@ -409,6 +434,7 @@ def main() -> None:
             f"KernelSU checkout is {head}, expected exact v3.4.0-legacy {EXPECTED_COMMIT}"
         )
 
+    patch_legacy_header_compat()
     patch_kconfig()
     patch_core_init()
     patch_selinux()
