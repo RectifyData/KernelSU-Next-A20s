@@ -72,7 +72,12 @@ def patch_legacy_api_compat() -> None:
     text = read(allowlist)
     if not (ROOT / "include/linux/compiler_types.h").exists():
         text = text.replace("#include <linux/compiler_types.h>\n", "")
-        write(allowlist, text)
+    text = text.replace(
+        "                strscpy_pad(domain, KSU_DEFAULT_SELINUX_DOMAIN, domain_len);",
+        "                memset(domain, 0, domain_len);\n"
+        "                strlcpy(domain, KSU_DEFAULT_SELINUX_DOMAIN, domain_len);",
+    )
+    write(allowlist, text)
 
     apk = "manager/apk_sign.c"
     text = read(apk)
