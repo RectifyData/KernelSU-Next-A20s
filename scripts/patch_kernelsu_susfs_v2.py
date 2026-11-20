@@ -65,6 +65,53 @@ def patch_legacy_header_compat() -> None:
     if leftovers:
         raise RuntimeError("unsupported scheduler headers remain: " + "; ".join(leftovers))
 
+
+def patch_legacy_api_compat() -> None:
+    """Backport small APIs/includes required by KSU 3.4.0-legacy to Samsung 4.9."""
+    allowlist = "policy/allowlist.c"
+    text = read(allowlist)
+    if not (ROOT / "include/linux/compiler_types.h").exists():
+        text = text.replace("#include <linux/compiler_types.h>\n", "")
+        write(allowlist, text)
+
+    apk = "manager/apk_sign.c"
+    text = read(apk)
+    if "ksu_kvmalloc_compat" not in text:
+        include_anchor = "#include <linux/version.h>\n"
+        include_add = "#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)\n#include <linux/vmalloc.h>\n#endif\n"
+        if include_anchor not in text:
+            raise RuntimeError("apk_sign.c: version include anchor not found")
+        text = text.replace(include_anchor, include_anchor + include_add, 1)
+
+        code_anchor = "struct sdesc {\n"
+        shim = r'''#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+static void *ksu_kvmalloc_compat(size_t size, gfp_t flags)
+{
+    void *p = kmalloc(size, flags | __GFP_NOWARN);
+
+    if (!p)
+        p = vmalloc(size);
+    return p;
+}
+
+static void ksu_kvfree_compat(const void *addr)
+{
+    if (is_vmalloc_addr(addr))
+        vfree(addr);
+    else
+        kfree(addr);
+}
+
+#define kvmalloc(size, flags) ksu_kvmalloc_compat((size), (flags))
+#define kvfree(addr) ksu_kvfree_compat((addr))
+#endif
+
+'''
+        if code_anchor not in text:
+            raise RuntimeError("apk_sign.c: struct sdesc anchor not found")
+        text = text.replace(code_anchor, shim + code_anchor, 1)
+        write(apk, text)
+
 def patch_kconfig() -> None:
     path = "Kconfig"
     text = read(path)
@@ -449,6 +496,7 @@ def main() -> None:
         )
 
     patch_legacy_header_compat()
+    patch_legacy_api_compat()
     patch_kconfig()
     patch_core_init()
     patch_selinux()
