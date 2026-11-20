@@ -208,7 +208,7 @@ out_kfree:
 				kfree(pathname);
 			}
 		}
-orig_flow:
+orig_flow: ;
 #endif
 '''
         if anchor not in text:
